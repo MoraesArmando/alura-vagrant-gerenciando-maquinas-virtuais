@@ -1,6 +1,6 @@
 # alura-vagrant-gerenciando-maquinas-virtuais
 
-## Comandos
+## Commands
 
 ### Init
 - Create a base Vagrantfile:
