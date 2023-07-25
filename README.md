@@ -1,5 +1,7 @@
 # alura-vagrant-gerenciando-maquinas-virtuais
 
+## Vagrant Cloud
+Vagrant Cloud serves a public, searchable index of Vagrant boxes: https://app.vagrantup.com/boxes/search
 ## Commands
 
 ### Init
@@ -46,3 +48,17 @@ vagrant ssh-config --host [name|id]
     ````
 >Vagrant will first attempt to gracefully shut down the machine by running the guest OS shutdown mechanism. If this fails, or if the --force flag is specified, Vagrant will effectively just shut off power to the machine.
 
+
+### Reload
+-This command is usually required for changes made in the Vagrantfile to take effect.
+    ````
+    vagrant reload [name|id]
+    ````
+
+### Destroy
+- This command stops the running machine Vagrant is managing and destroys all resources that were created during the machine creation process.
+    ```` 
+    vagrant destroy [name|id]
+    ````
+    - -f or --force - Do not ask for confirmation before destroying
+    - -g or --graceful - Shuts down the machine gracefully

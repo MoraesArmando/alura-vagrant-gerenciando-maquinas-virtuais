@@ -3,4 +3,25 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/focal64"
+  #####################
+  #     Networks      #
+  #####################
+  # Forwarded Ports
+  config.vm.network "forwarded_port", guest: 80, host: 8089 
+  # Private Networks
+    # Static IP
+  # config.vm.network "private_network", ip: "192.168.56.10"
+    # DHCP
+  # config.vm.network "private_network", type: "dhcp"
+  
+  # Public Networks
+  # config.vm.network "public_network"
+    # DHCP Assigned Default Route
+  # config.vm.network "public_network",
+  #   use_dhcp_assigned_default_route: true
+    # Static IP
+  config.vm.network "public_network", ip: "192.168.1.17"
+
+  
+
 end
