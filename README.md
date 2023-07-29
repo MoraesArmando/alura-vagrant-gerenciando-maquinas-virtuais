@@ -41,6 +41,8 @@ vagrant ssh-config [name|id]
 vagrant ssh-config --host [name|id]
 ````
 
+> OBS - Para utilizar o "ssh -i key nome@host" precisamos adicionar a chave pública no arquivo "~/.ssh/authorized_keys"   
+
 ### Halt
 - This command shuts down the running machine Vagrant is managing:
     ````
@@ -62,3 +64,11 @@ vagrant ssh-config --host [name|id]
     ````
     - -f or --force - Do not ask for confirmation before destroying
     - -g or --graceful - Shuts down the machine gracefully
+
+### Provision
+-This command is a great way to quickly test any provisioners, and is especially useful for incremental development of shell scripts, Chef cookbooks, or Puppet modules.
+    ````
+    vagrant provision [vm-name]
+    ````
+    - --provision-with x,y,z -> This will only run the given provisioners.
+    ex: vagrant provision --provision-with shell
