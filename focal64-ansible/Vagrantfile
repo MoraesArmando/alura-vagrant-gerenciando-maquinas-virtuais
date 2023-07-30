@@ -1,0 +1,132 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Instalando o mysql-server (com SCRIPT)
+$script_mysql = <<-SCRIPT
+apt-get update && \
+apt-get install -y mysql-server && \
+mysql -e "create user 'phpuser'@'%' identified by 'pass';"
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/focal64"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 1024
+    vb.cpus = 1
+  end
+  
+  
+  ######################################
+  #    Defining Multiple Machines      #
+  ######################################
+
+  # config.vm.define "mysql" do |mysql|
+  #   #####################
+  #   #     Networks      #
+  #   #####################
+  #   # Forwarded Ports
+  #   mysql.vm.network "forwarded_port", guest: 80, host: 8089 
+  #   # Private Networks
+  #     # Static IP
+  #   # mysql.vm.network "private_network", ip: "192.168.56.10"
+  #     # DHCP
+  #   # mysql.vm.network "private_network", type: "dhcp"
+    
+  #   # Public Networks
+  #   # mysql.vm.network "public_network"
+  #     # DHCP Assigned Default Route
+  #   # mysql.vm.network "public_network",
+  #   #   use_dhcp_assigned_default_route: true
+  #     # Static IP
+  #   mysql.vm.network "public_network", ip: "192.168.1.17", bridge: "enp0s31f6"
+
+  #   #########################
+  #   #     provisioning      #
+  #   #########################
+  #   # Shell - Inline Scripts
+  #   # Adicionado chave prublica no "authorized_keys"
+  #   mysql.vm.provision "shell",
+  #     inline: "cat /configs/id_focal64.pub >> .ssh/authorized_keys"
+    
+
+  #   # Instalando o mysql-server (com SCRIPT)
+  #   mysql.vm.provision "shell", inline: $script_mysql
+  #   # Adicionando novas configurações no MySQL
+  #   mysql.vm.provision "shell",
+  #     inline: "cat /configs/mysqld.cnf > /etc/mysql/mysql.conf.d/mysqld.cnf"
+  #   # Reiniciando o MySQL
+  #   mysql.vm.provision "shell", inline: "service mysql restart"
+
+  #   ###########################
+  #   #     Synced Folders      #
+  #   ###########################
+  #   mysql.vm.synced_folder "./configs", "/configs"
+  #   mysql.vm.synced_folder ".", "/vagrant", disabled: true
+  # end
+
+  config.vm.define "phpweb" do |phpweb|
+    phpweb.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+      vb.name = "ubuntu_focal_php"
+    end    
+    #####################
+    #     Networks      #
+    #####################
+    # Static IP
+    phpweb.vm.network "forwarded_port", guest: 8888, host: 8888
+    # Forwarded Ports
+    phpweb.vm.network "public_network", ip: "192.168.1.18", bridge: "enp0s31f6"
+
+    #########################
+    #     provisioning      #
+    #########################
+    # Adicionado chave prublica no "authorized_keys"
+    phpweb.vm.provision "shell",
+      inline: "cat /configs/id_focal64.pub >> .ssh/authorized_keys"
+
+    # # Instalando o puppet (com SCRIPT)
+    phpweb.vm.provision "shell",
+      inline: "apt-get update && apt-get install -y puppet"
+    
+    ###########################
+    #     Synced Folders      #
+    ###########################
+    # Enable
+    phpweb.vm.synced_folder "./configs", "/configs"
+
+    phpweb.vm.provision "puppet" do |puppet|
+      puppet.manifests_path = "./configs/manifests"
+      puppet.manifest_file = "phpweb.pp"
+    end
+
+  end
+  
+  config.vm.define "mysqlserver" do |mysqlserver|
+    mysqlserver.vm.network "public_network", ip: "192.168.1.20", bridge: "enp0s31f6"
+    
+    mysqlserver.vm.provision "shell",
+      inline: "cat /vagrant/configs/id_focal64.pub >> .ssh/authorized_keys"
+  end
+
+  config.vm.define "ansible" do |ansible|
+    ansible.vm.network "public_network", ip: "192.168.1.19", bridge: "enp0s31f6"
+    
+    ansible.vm.provision "shell",
+      inline: "apt-get update && \
+               apt-get install -y software-properties-common && \
+               apt-add-repository --yes --update ppa:ansible/ansible && \
+               apt-get install -y ansible"
+
+    ansible.vm.provision "shell",
+      inline: "cp /vagrant/id_focal64 /home/vagrant/.ssh/ \
+      && chmod 600 /home/vagrant/.ssh/id_focal64 \
+      && chown vagrant:vagrant /home/vagrant/.ssh/id_focal64"
+
+
+    ansible.vm.provision "shell",
+      inline: "ansible-playbook -i /vagrant/configs/ansible/hosts /vagrant/configs/ansible/playbook.yml"
+            
+  end
+end
